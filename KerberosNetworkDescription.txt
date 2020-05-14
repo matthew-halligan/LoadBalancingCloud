@@ -1,0 +1,64 @@
+Definitions:
+User A - client
+Auth Server S - Open to public connection
+Ticket Granting Service - TGS
+Container B - instance that client A will be authorized to access
+Container C - instance that client A will NOT be authorized to access
+{A message surrounded in curly brackets}Key*YZ - an encrypted message with key between Y and Z 
+
+1. User creates account that generate the ssh key to be used
+
+2. this key is stored on the server to auth when connected
+
+3. User A says with their sshkey that they are A, they would like to talk with 
+the ticket granting system and they will pass a nonce*a.
+	   User A -----> Auth S
+	1. (A, TGS, nonce*a) 
+
+4. The authorization server S will check in the database if there exists a key A and assuming there is a Key A the Authorization service will send back two encrypted messages to user A.
+	   User A <----- Auth S
+	1. {Key*AT, nonce*a, time stamp, lifespan of message, TGS}Key*AS
+	2. {Key*AT, lifespan of message, A}Key*ST
+
+
+NOTE: User A is still not granted access to use any containers yet.
+
+5. User A is now ready to talk with the ticket granting service.  He has been authorized to be given a ticket.  User A will now send two messages to Ticket Granting Service and request a ticket to connect with Container B.  
+	   User A -----> TGS
+	1. {A, timestamp, I want to talk to B, new nonce*a}Key*AT
+	2. {Key*AT, lifespan of message, A}Key*ST
+
+NOTE: the second message is a forwarding of message 2 from step 4
+NOTE: the only reason TGS can read message 1 is because the private message from auth S contains the key embedded in the encrypted message that is forwarded.
+
+6. Now the work load has been shifted to the Ticket Granting Service.  The TGS is now going to verify User A's request to
+connect to Container B using some verification process, perhaps a database with user auth levels or specific container auths
+listed and hashed
+
+TODO: Determine how TGS is going to verify a users permission to access a particular container
+
+7. A is permitted to connect with Container B.  The TGS will need to provide User A with the key permission to speak with Container B so TGS sends User A two message.
+	   User A <----- TGS
+	1. {Key*AB, nonce*a, Timestamp from TGS, Lifespan of message, Location of B}
+	2. {Key*AB, IP of A, Lifespan of Key}Key*BT
+
+7A. On the sending of this message TGS must spin up Container B by either doing it directly or calling out to a third microservice that starts containers from their saves.
+
+8. Its finally time that User A can connect with Container B.  User A will pass two messages to Container B.
+	   User A -----> Container B
+	1. {Location of A, Timestamp*a}Key*AB
+	2. {Key*AB, Location of A, Lifetime of Key}Key*BT
+
+9. Container B will respond to User A to be sure that User A can understand Container B and is not and imposter.
+	   User A <----- Container B
+	1. {Timestamp*a +1}Key*AB
+
+
+10. User A is now authorized and connected with container B.  As long as the lifetime of the key has not expired A and B can continue to send messages back and forth with the key.  If User A wishes to speak with Container C, User A will need to request access from the Ticket Granting Service beginning again at step 5.
+
+NOTE: Becuase we are working with containers running full distros of linux there is a possiblity that a User A will attempt to connect with Container C through Container B. This of course should not be allowed for User A to do such a thing.  To Overcome, the containers networking priviliges will be governed by the TGS.  Any incoming traffic must be approved by TGS else it should be dropped without question or response.
+
+
+
+
+
