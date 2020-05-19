@@ -1,4 +1,4 @@
-public class UserInterface {
+public class UserInterfaceSocket {
     // Account Creation
     // Key Generation
     // Socket Connection
