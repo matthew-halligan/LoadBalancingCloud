@@ -26,7 +26,7 @@ NOTE: User A is still not granted access to use any containers yet.
 5. User A is now ready to talk with the ticket granting service.  He has been authorized to be given a ticket.  User A will now send two messages to Ticket Granting Service and request a ticket to connect with Container B.  
 	   User A -----> TGS
 	1. {A, timestamp, I want to talk to B, new nonce*a}Key*AT
-	2. {Key*AT, lifespan of message, A}Key*ST
+	2. {Key*AT, lifespan of ticket, A}Key*ST
 
 NOTE: the second message is a forwarding of message 2 from step 4
 NOTE: the only reason TGS can read message 1 is because the private message from auth S contains the key embedded in the encrypted message that is forwarded.
